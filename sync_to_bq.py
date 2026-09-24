@@ -45,7 +45,7 @@ SCHEMAS = {
 DESCRIPTIONS = {
     "stellifi_fund_snapshot": "Stellifi Fund I LP fund-level KPIs (committed, paid-in, invested, fair value, fees, MOIC, gross/net TVPI, IRR) — one row per daily snapshot. Source: Stellifi Venture Capital 'Stellifi Fund I' Google Sheet via the dashboard Apps Script. Refresh: daily (Cloud Run job stellifi-fund-sync). Owner: ~/oth-stellifi-dashboard/sync_to_bq.py.",
     "stellifi_holdings": "Stellifi Fund I LP portfolio companies (HelixIntel, Dextall, ResiDesk, PropUp, Tough Leaf, Leni, Incentifind, Soil Connect, Roomie, Arthur, Forty5Park, Doorkee) — invested, fair value, MOIC per company per daily snapshot. Source: Stellifi Fund I Google Sheet via Apps Script. Refresh: daily (stellifi-fund-sync).",
-    "stellifi_lps": "Stellifi Fund I LP limited-partner roster — commitment, paid-in and % of fund per LP per daily snapshot (57 LPs incl. OTH Holdings, James C. Vaughan 2014 Trust, DAHG, Boero LLC, MM Seneca, Strategic Investment Trust). Source: 'Fronted LP Cash' tab of the Stellifi Fund I Google Sheet via Apps Script. Refresh: daily (stellifi-fund-sync).",
+    "stellifi_lps": "Stellifi Fund I LP limited-partner roster — commitment, paid-in (commitment × fund called %) and % of fund per LP per daily snapshot (57 LPs incl. OTH Holdings, James C. Vaughan 2014 Trust, DAHG, Boero LLC, MM Seneca, Strategic Investment Trust). Source: 'Fronted LP Cash' tab of the Stellifi Fund I Google Sheet via Apps Script. Refresh: daily (stellifi-fund-sync).",
 }
 
 
@@ -85,16 +85,21 @@ def rows(data, today):
                          moic=(fv / inv) if inv else None, status=status, loaded_at=now))
     lps = []
     seen = {}
+    # Per-LP paid-in = commitment × fund called % (same as the dashboard). The sheet's own
+    # 'Called To Date' column is a flat =D*0.5 assumption that lags the real capital calls.
+    called_pct = (fund["paid_in"] or 0) / fund["committed"] if fund.get("committed") else 0.0
     for l in data.get("lps", []):
         name = (l.get("name") or "").strip()
         if not name:
             continue
         # the sheet carries duplicate names for split commitments (Matthew Muehe ×2) — aggregate on the natural key
         if name in seen:
-            r = seen[name]; r["commitment"] += l.get("commitment") or 0; r["paid_in"] += l.get("paid_in") or 0; r["pct_of_fund"] += l.get("pct") or 0
+            r = seen[name]; r["commitment"] += l.get("commitment") or 0; r["pct_of_fund"] += l.get("pct") or 0
+            r["paid_in"] = r["commitment"] * called_pct
             continue
-        seen[name] = dict(snapshot_date=today, lp_name=name, commitment=l.get("commitment") or 0.0,
-                          paid_in=l.get("paid_in") or 0.0, pct_of_fund=l.get("pct") or 0.0, loaded_at=now)
+        c = l.get("commitment") or 0.0
+        seen[name] = dict(snapshot_date=today, lp_name=name, commitment=c,
+                          paid_in=c * called_pct, pct_of_fund=l.get("pct") or 0.0, loaded_at=now)
     lps = list(seen.values())
     return fund_row, hold, lps
 
