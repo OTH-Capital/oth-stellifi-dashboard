@@ -8,7 +8,11 @@ set -euo pipefail
 cd "$(dirname "$0")"
 PROJECT=oth-data-warehouse; REGION=us-central1; JOB=stellifi-fund-sync
 gsutil -h "Cache-Control:private, max-age=300" cp index.html gs://oth-dashboard/stellifi/index.html
-echo "✅ dashboard → https://storage.cloud.google.com/oth-dashboard/stellifi/index.html"
+echo "✅ dashboard (othcapital login) → https://storage.cloud.google.com/oth-dashboard/stellifi/index.html"
+# Public copy (Paolo 2026-09-24: "make public"). oth-dashboard uses uniform bucket-level access, so a public
+# object cannot live there; oth-dashboard-public is the allUsers-readable bucket.
+gsutil -h "Cache-Control:public, max-age=300" cp index.html gs://oth-dashboard-public/stellifi/index.html
+echo "✅ dashboard (public)           → https://storage.googleapis.com/oth-dashboard-public/stellifi/index.html"
 for a in "$@"; do case "$a" in
   --job)
     gcloud run jobs deploy "$JOB" --source=. --project="$PROJECT" --region="$REGION" --tasks=1 --max-retries=1 --task-timeout=300 --memory=512Mi

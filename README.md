@@ -1,6 +1,8 @@
 # Stellifi Fund I LP — dashboard + warehouse sync
 
-**Dashboard:** `index.html` → https://storage.cloud.google.com/oth-dashboard/stellifi/index.html (portal tile "Stellifi Fund I LP").
+**Dashboard:** `index.html` → https://storage.cloud.google.com/oth-dashboard/stellifi/index.html (othcapital login) and the PUBLIC copy
+https://storage.googleapis.com/oth-dashboard-public/stellifi/index.html (portal tile "Stellifi Fund I LP"). Public by Paolo's call 2026-09-24 —
+the page embeds the Apps Script key and the LP roster; rotate the key in the Apps Script if that needs reversing.
 Live data comes from the Apps Script over the "Stellifi Venture Capital - Stellifi Fund I" Google Sheet
 (`1fbl-MmUZt5gGJR8KmdyjgMLymYUoHSNksifuG-0bwq8`; LP roster = 'Fronted LP Cash' tab, rows above the TOTAL row).
 Investor PDF: Bridge card → pick investor → **Export investor PDF** (print → Save as PDF; fund-level data + that LP only).
