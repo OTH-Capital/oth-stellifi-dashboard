@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stellifi Fund I LP · Performance Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;0,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e1218;
+    --bg-card: #161b25;
+    --bg-card-hover: #1c222e;
+    --bg-deep: #0a0d12;
+    --border: #242a36;
+    --border-strong: #34394a;
+    --text: #e5e2d6;
+    --text-muted: #8a8674;
+    --text-dim: #5a5848;
+    --gold: #c4a05e;
+    --gold-soft: #d4b577;
+    --gold-dim: #8a704a;
+    --green: #6f9c6f;
+    --red: #c47a5e;
+    --blue: #7a93b3;
+    --teal: #5e9b96;
+    --plum: #9a82a8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 32px 40px 80px;
+    min-height: 100vh;
+  }
+  .num, .mono {
+    font-family: 'IBM Plex Mono', 'Menlo', monospace;
+    font-weight: 500;
+    font-feature-settings: "tnum";
+  }
+  .serif { font-family: 'Newsreader', Georgia, serif; font-weight: 400; }
+  .gold { color: var(--gold); }
+  .gold-soft { color: var(--gold-soft); }
+  .green { color: var(--green); }
+  .red { color: var(--red); }
+  .muted { color: var(--text-muted); }
+  .dim { color: var(--text-dim); }
+
+  /* ── Header ── */
+  .header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 32px; padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .title-block .eyebrow {
+    color: var(--gold); text-transform: uppercase; letter-spacing: 0.18em;
+    font-size: 11px; font-weight: 500; margin-bottom: 6px;
+  }
+  .title-block h1 {
+    font-family: 'Newsreader', serif; font-size: 32px; font-weight: 500;
+    letter-spacing: -0.01em; line-height: 1.1;
+  }
+  .title-block h1 em { font-style: italic; color: var(--gold-soft); }
+  .meta { text-align: right; color: var(--text-muted); font-size: 12px; line-height: 1.7; }
+  .meta .num { color: var(--text); }
+
+  /* ── Hero stats ── */
+  .hero { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .stat {
+    background: var(--bg-card); border: 1px solid var(--border);
+    padding: 22px 24px;
+  }
+  .stat .label {
+    font-size: 11px; font-weight: 500; text-transform: uppercase;
+    letter-spacing: 0.14em; color: var(--text-muted); margin-bottom: 10px;
+  }
+  .stat .value { font-size: 30px; font-weight: 500; line-height: 1.1; }
+  .stat .value.huge { font-size: 38px; }
+  .stat .sub { font-size: 12px; color: var(--text-muted); margin-top: 8px; }
+  .stat.primary {
+    background: linear-gradient(135deg, #1a1f2c 0%, #161b25 100%);
+    border: 1px solid var(--gold-dim);
+  }
+  .stat.primary .label { color: var(--gold); }
+  .delta { font-size: 13px; padding-left: 8px; color: var(--green); }
+  .delta.neg { color: var(--red); }
+
+  /* ── Section heading ── */
+  .section-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin: 32px 0 16px;
+  }
+  .section-head h2 {
+    font-family: 'Newsreader', serif; font-weight: 500; font-size: 22px;
+    letter-spacing: -0.005em;
+  }
+  .section-head h2 .num { color: var(--text-muted); font-weight: 400; }
+  .section-head .hint { color: var(--text-muted); font-size: 12px; }
+
+  /* ── Two-column layout ── */
+  .two-col { display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; }
+
+  /* ── Generic panel ── */
+  .panel {
+    background: var(--bg-card); border: 1px solid var(--border);
+    padding: 24px;
+  }
+  .panel-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  .panel-head h3 {
+    font-family: 'Newsreader', serif; font-weight: 500; font-size: 17px;
+    color: var(--text);
+  }
+  .panel-head .small { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.12em; }
+
+  /* ── Portfolio table ── */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    text-align: left; padding: 12px 10px;
+    color: var(--text-muted); font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.1em; font-size: 11px;
+    border-bottom: 1px solid var(--border-strong);
+    cursor: pointer; user-select: none;
+    white-space: nowrap;
+  }
+  thead th:hover { color: var(--gold); }
+  thead th.right, tbody td.right { text-align: right; }
+  tbody td {
+    padding: 13px 10px; border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  tbody tr { transition: background 0.1s; }
+  tbody tr:hover { background: var(--bg-card-hover); }
+  tbody tr:last-child td { border-bottom: none; }
+  .tag {
+    display: inline-block; padding: 2px 8px; border-radius: 2px;
+    font-size: 10.5px; font-weight: 500; letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: rgba(196, 160, 94, 0.1); color: var(--gold-soft);
+  }
+  .tag.proptech { background: rgba(122, 147, 179, 0.12); color: var(--blue); }
+  .tag.contech { background: rgba(94, 155, 150, 0.12); color: var(--teal); }
+  .tag.re-services { background: rgba(154, 130, 168, 0.12); color: var(--plum); }
+  .moic-bar {
+    position: relative; height: 5px; background: var(--bg-deep);
+    border-radius: 1px; margin-top: 5px; overflow: hidden;
+  }
+  .moic-bar .fill {
+    position: absolute; left: 0; top: 0; bottom: 0;
+    background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+  }
+  .moic-bar.low .fill { background: var(--red); }
+  .moic-bar.zero { background: var(--bg-deep); }
+  .status-dot {
+    display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+    margin-right: 6px; vertical-align: middle;
+  }
+  .status-dot.active { background: var(--green); }
+  .status-dot.write { background: var(--red); }
+  .status-dot.flat { background: var(--text-dim); }
+
+  /* ── Sector donut ── */
+  .donut-wrap { display: flex; flex-direction: column; gap: 20px; align-items: stretch; }
+  .donut-row { display: flex; justify-content: center; padding: 8px 0; }
+  .donut { position: relative; width: 240px; height: 240px; flex-shrink: 0; }
+  .donut svg { transform: rotate(-90deg); }
+  .donut-center {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .donut-center .label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.12em; }
+  .donut-center .value { font-family: 'Newsreader', serif; font-size: 36px; font-weight: 500; color: var(--gold); }
+  .legend { flex: 1; }
+  .legend-row {
+    display: flex; align-items: center; padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .legend-row:last-child { border-bottom: none; }
+  .legend-swatch { width: 14px; height: 14px; margin-right: 14px; border-radius: 2px; }
+  .legend-name { flex: 1; font-size: 14px; }
+  .legend-val { font-size: 14px; }
+
+  /* ── Capital calls timeline ── */
+  .calls-list { display: flex; flex-direction: column; gap: 0; }
+  .call-row {
+    display: grid;
+    grid-template-columns: 100px 1fr 130px 130px;
+    align-items: center; gap: 16px;
+    padding: 12px 0; border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .call-row:last-child { border-bottom: none; }
+  .call-row .date { color: var(--text-muted); font-size: 12px; }
+  .call-row .type { font-weight: 500; }
+  .call-row .pct { color: var(--gold); }
+  .call-row .amount { text-align: right; }
+  .call-row.total { border-top: 2px solid var(--border-strong); border-bottom: none; padding-top: 14px; margin-top: 4px; font-weight: 500; }
+
+  /* ── Capital flow bar ── */
+  .flow-card { background: var(--bg-card); border: 1px solid var(--border); padding: 24px; margin-top: 16px; }
+  .flow-bar {
+    height: 36px; background: var(--bg-deep); border-radius: 2px;
+    position: relative; margin: 16px 0 12px; display: flex; overflow: hidden;
+  }
+  .flow-seg { height: 100%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; color: rgba(0,0,0,0.7); }
+  .flow-seg.invested { background: var(--gold); }
+  .flow-seg.fees { background: var(--red); }
+  .flow-seg.uncalled { background: var(--bg-card-hover); color: var(--text-muted); }
+  .flow-bar .uncalled { color: var(--text-muted); }
+  .flow-legend { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .flow-leg-item .label { font-size: 10.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+  .flow-leg-item .val { font-family: 'IBM Plex Mono', monospace; font-weight: 500; font-size: 16px; }
+
+  /* ── Bridge / Net Worth feed (the headline section) ── */
+  .bridge {
+    background: linear-gradient(135deg, #1a1f2c 0%, #1f1a14 100%);
+    border: 1px solid var(--gold-dim);
+    padding: 32px;
+    margin-top: 32px;
+  }
+  .bridge .panel-head h3 { color: var(--gold-soft); font-size: 19px; }
+  .bridge-grid { display: grid; grid-template-columns: 1.4fr auto 1fr; gap: 24px; align-items: center; margin-top: 20px; }
+  .bridge-card {
+    background: rgba(0,0,0,0.25); border: 1px solid var(--border);
+    padding: 20px; min-height: 140px;
+  }
+  .bridge-card .label { font-size: 10.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 8px; }
+  .bridge-card .formula { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text-muted); margin-top: 8px; }
+  .bridge-card .row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 6px 0; border-bottom: 1px dashed var(--border);
+  }
+  .bridge-card .row:last-child { border-bottom: none; }
+  .bridge-arrow {
+    text-align: center; color: var(--gold);
+    font-family: 'Newsreader', serif; font-size: 32px;
+  }
+  .bridge-output {
+    background: rgba(196, 160, 94, 0.06);
+    border: 1px solid var(--gold-dim);
+    padding: 20px; text-align: center;
+  }
+  .bridge-output .label { color: var(--gold); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; margin-bottom: 10px; }
+  .bridge-output .value {
+    font-family: 'Newsreader', serif; font-size: 36px;
+    color: var(--gold-soft); font-weight: 500; line-height: 1.1;
+  }
+  .bridge-output .sub { font-size: 12px; color: var(--text-muted); margin-top: 8px; }
+
+  /* ── Selectors in bridge ── */
+  .investor-select {
+    width: 100%; background: var(--bg-deep); border: 1px solid var(--border);
+    color: var(--text); padding: 8px 10px; font-family: inherit; font-size: 13px;
+    margin-top: 4px;
+  }
+  .method-pills { display: flex; gap: 6px; margin-top: 4px; }
+  .method-pill {
+    flex: 1; padding: 8px 10px; background: var(--bg-deep);
+    border: 1px solid var(--border); cursor: pointer;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em;
+    text-align: center; color: var(--text-muted); transition: all 0.15s;
+  }
+  .method-pill:hover { color: var(--text); }
+  .method-pill.active { background: var(--gold); color: var(--bg); border-color: var(--gold); }
+  .export-btn {
+    margin-top: 14px; width: 100%; padding: 9px 12px; border-radius: 6px; cursor: pointer;
+    background: transparent; border: 1px solid var(--gold-dim); color: var(--gold-soft);
+    font: inherit; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .export-btn:hover { background: var(--gold); color: var(--bg); border-color: var(--gold); }
+  .export-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+
+  /* ── LP cap table strip ── */
+  .lp-strip {
+    background: var(--bg-card); border: 1px solid var(--border);
+    padding: 20px 24px; margin-top: 24px;
+  }
+  .lp-strip-head { display: flex; justify-content: space-between; margin-bottom: 14px; }
+  .lp-strip-head h3 { font-family: 'Newsreader', serif; font-size: 17px; font-weight: 500; }
+  .lp-row { display: grid; grid-template-columns: 2fr 100px 100px 100px; gap: 16px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .lp-row:last-child { border-bottom: none; }
+  .lp-row .num { text-align: right; }
+  .lp-row .pct { color: var(--gold-soft); }
+  .lp-row.highlight { background: rgba(196, 160, 94, 0.04); margin: 0 -24px; padding: 10px 24px; border: 1px solid var(--gold-dim); border-left: 0; border-right: 0; }
+
+  @media (max-width: 1100px) {
+    .hero { grid-template-columns: 1fr 1fr; }
+    .two-col { grid-template-columns: 1fr; }
+    .bridge-grid { grid-template-columns: 1fr; }
+    .bridge-arrow { display: none; }
+  }
+
+  /* ── Live status pill ── */
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 5px 12px; background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 100px; font-size: 11px; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.1em;
+    cursor: pointer; transition: all 0.15s; user-select: none;
+  }
+  .status-pill:hover { color: var(--text); border-color: var(--border-strong); }
+  .status-pill .dot { width: 7px; height: 7px; border-radius: 50%; }
+  .status-pill.live    .dot { background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 2s infinite; }
+  .status-pill.cached  .dot { background: var(--text-dim); }
+  .status-pill.loading .dot { background: var(--gold); animation: pulse 1s infinite; }
+  .status-pill.error   .dot { background: var(--red); }
+  .status-pill.refreshing { color: var(--gold); }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+
+  @media print {
+    body { background: white; color: #1a1a1a; padding: 20px; }
+    .stat, .panel, .bridge, .lp-strip, .flow-card { break-inside: avoid; border-color: #ccc; background: white !important; color: #1a1a1a; }
+    .status-pill { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ─────────────────────────────────── Header ─────────────────────────────────── -->
+<div class="header">
+  <div class="title-block">
+    <div class="eyebrow">Stellifi Capital · Fund Performance</div>
+    <h1>Stellifi Fund I <em>LP</em></h1>
+  </div>
+  <div class="meta">
+    <div>Fair values as of <span class="num" id="asOfDate">2026-06-30</span></div>
+    <div>Vintage <span class="num">2022</span> · <span id="lpCount">41</span> LPs</div>
+    <div style="margin-top: 10px;">
+      <span class="status-pill" id="statusPill" title="Click to refresh">
+        <span class="dot"></span>
+        <span id="statusText">Loading…</span>
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────────────────────────── Hero ─────────────────────────────────── -->
+<div class="hero">
+  <div class="stat primary">
+    <div class="label">Net TVPI</div>
+    <div class="value huge serif gold">1.75x</div>
+    <div class="sub">
+      Gross TVPI <span class="num">1.82x</span>
+      <span class="delta">+75% net of fees</span>
+    </div>
+  </div>
+  <div class="stat">
+    <div class="label">Fair Value</div>
+    <div class="value serif num">$27.23M</div>
+    <div class="sub">across <span class="num">12</span> active positions</div>
+  </div>
+  <div class="stat">
+    <div class="label">MOIC</div>
+    <div class="value serif num">2.01x</div>
+    <div class="sub">FV / Invested</div>
+  </div>
+  <div class="stat">
+    <div class="label">IRR</div>
+    <div class="value serif num">32%</div>
+    <div class="sub">net, since first close</div>
+  </div>
+</div>
+
+<!-- ─────────────────────────────────── Capital flow ─────────────────────────────────── -->
+<div class="flow-card">
+  <div class="panel-head">
+    <h3>Capital Activity</h3>
+    <div class="small">$18.7M committed · 80% called</div>
+  </div>
+  <div class="flow-bar" id="flowBar"></div>
+  <div class="flow-legend">
+    <div class="flow-leg-item">
+      <div class="label">Committed</div>
+      <div class="val num">$18,700,000</div>
+    </div>
+    <div class="flow-leg-item">
+      <div class="label">Paid-In (80%)</div>
+      <div class="val num">$14,951,680</div>
+    </div>
+    <div class="flow-leg-item">
+      <div class="label">Invested</div>
+      <div class="val num">$13,544,997</div>
+    </div>
+    <div class="flow-leg-item">
+      <div class="label">Mgmt Fees</div>
+      <div class="val num red">$1,093,631</div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────────────────────────── Portfolio + sector ─────────────────────────────────── -->
+<div class="section-head">
+  <h2>Portfolio Holdings <span class="num">12 active</span></h2>
+  <div class="hint">click any column to sort · sorted by Fair Value desc</div>
+</div>
+
+<div class="two-col">
+  <div class="panel">
+    <div class="table-wrap">
+      <table id="holdingsTable">
+        <thead>
+          <tr>
+            <th data-sort="name">Company</th>
+            <th data-sort="sector">Sector</th>
+            <th data-sort="stage">Stage</th>
+            <th class="right" data-sort="invested">Invested</th>
+            <th class="right" data-sort="fv">Fair Value</th>
+            <th class="right" data-sort="moic">MOIC</th>
+          </tr>
+        </thead>
+        <tbody id="holdingsBody"></tbody>
+        <tfoot>
+          <tr style="background: var(--bg-deep);">
+            <td colspan="3" style="font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; font-size: 11px;">Portfolio Total</td>
+            <td class="right num" style="font-weight: 500;">$13,544,997</td>
+            <td class="right num gold" style="font-weight: 500;">$27,233,109</td>
+            <td class="right num gold" style="font-weight: 500;">2.01x</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <h3>Sector Allocation</h3>
+      <div class="small">by fair value</div>
+    </div>
+    <div class="donut-wrap">
+      <div class="donut-row">
+        <div class="donut" id="donut">
+          <svg width="240" height="240" viewBox="0 0 240 240" id="donutSvg"></svg>
+          <div class="donut-center">
+            <div class="label">Total FV</div>
+            <div class="value">$27.2M</div>
+          </div>
+        </div>
+      </div>
+      <div class="legend" id="sectorLegend"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────────────────────────── Capital calls ─────────────────────────────────── -->
+<div class="section-head">
+  <h2>Capital Calls & Closes</h2>
+  <div class="hint">cumulative paid-in capital over time</div>
+</div>
+<div class="panel">
+  <div class="calls-list" id="callsList"></div>
+</div>
+
+<!-- ─────────────────────────────────── LP cap table ─────────────────────────────────── -->
+<div class="lp-strip">
+  <div class="lp-strip-head">
+    <h3>Largest LP Positions</h3>
+    <div class="small muted">41 LPs total · $18.7M committed · OTH Holdings is largest</div>
+  </div>
+  <div id="lpRows"></div>
+</div>
+
+<!-- ─────────────────────────────────── BRIDGE TO NET WORTH ─────────────────────────────────── -->
+<div class="bridge">
+  <div class="panel-head">
+    <h3>→ Bridge to Partner Net Worth</h3>
+    <div class="small muted">drives the Stellifi Fund I MTM line in the Partner Net Worth dashboard</div>
+  </div>
+
+  <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px; max-width: 800px;">
+    For any LP investor entity, MTM = <span class="num gold">Paid-In × TVPI</span>.
+    The Partner Net Worth dashboard reads the par from Sage and applies the TVPI from this dashboard,
+    producing a marked-to-market value with a methodology note next to it.
+  </div>
+
+  <div class="bridge-grid">
+    <!-- Inputs -->
+    <div class="bridge-card">
+      <div class="label">Inputs</div>
+      <div style="margin-top: 12px;">
+        <label style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em;">Investor entity</label>
+        <select class="investor-select" id="investorSelect"></select>
+      </div>
+      <div style="margin-top: 14px;">
+        <label style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em;">TVPI methodology</label>
+        <div class="method-pills">
+          <div class="method-pill active" data-method="net" id="pillNet">Net TVPI · 1.75x</div>
+          <div class="method-pill" data-method="gross" id="pillGross">Gross TVPI · 1.82x</div>
+        </div>
+      </div>
+      <button type="button" class="export-btn" id="exportPdf" title="Opens a print-ready investor statement (fund-level data + this investor's position; no other LP names) — choose “Save as PDF” in the print dialog">Export investor PDF</button>
+    </div>
+
+    <div class="bridge-arrow">×</div>
+
+    <!-- Output -->
+    <div class="bridge-output" id="bridgeOutput">
+      <div class="label">Stellifi Fund I — MTM</div>
+      <div class="value num" id="mtmValue">—</div>
+      <div class="sub" id="mtmDetail"></div>
+    </div>
+  </div>
+
+  <div style="margin-top: 24px; padding: 16px; background: rgba(0,0,0,0.25); border-left: 2px solid var(--gold); font-size: 12px; line-height: 1.7;">
+    <div style="color: var(--gold-soft); text-transform: uppercase; letter-spacing: 0.1em; font-size: 10.5px; margin-bottom: 6px;">Methodology Note</div>
+    <span id="methodNote" class="muted"></span>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   API CONFIG
+   Paste your Apps Script web app URL + key after deploying.
+   See SETUP.md for the 5-minute deploy.
+============================================================ */
+// LIVE MODE DISABLED — sheet not finalized yet. To re-enable, paste URL back into API_URL below.
+// const API_URL_LIVE = 'https://script.google.com/macros/s/AKfycbwJ-JXyf26UsCbPIGeD4zXdXVTDxeJPXZcKb4NzLg_IKxsupB8qZwbFM9AP377pKlg7/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbwJ-JXyf26UsCbPIGeD4zXdXVTDxeJPXZcKb4NzLg_IKxsupB8qZwbFM9AP377pKlg7/exec';   // empty = snapshot-only mode (no live fetch)
+const API_KEY = 'oth-stellifi-moonshots';
+const REFRESH_MS = 5 * 60 * 1000;   // auto-refresh every 5 min
+
+/* ============================================================
+   EMBEDDED FALLBACK DATA
+   Used when API_URL is empty or fetch fails.
+   These numbers were captured from the sheet on 2025-12-31.
+============================================================ */
+const MARKS_ASOF = "2026-06-30";   // fair-value marks per the 6/30/26 report — bump each quarter (sheet asof cell lags)
+const FUND_SNAPSHOT_MARK = true;
+const FUND = {
+  asof: "2025-12-31",
+  vintage: 2022,
+  committed: 18_700_000,
+  paid_in:   14_951_680,
+  invested:  13_544_997,
+  fair_value: 27_233_109,
+  fees:        1_093_631,
+  net_value:  26_139_478,
+  moic: 2.01,
+  tvpi: 1.82,
+  net_tvpi: 1.75,
+  irr: 0.32,
+};
+
+const HOLDINGS = [
+  { name: "Doorkee",        sector: "PropTech",    stage: "Series Seed", invested: 500000,    fv:        0, status: "write" },
+  { name: "HelixIntel",     sector: "PropTech",    stage: "Series A",    invested: 1955118,   fv: 10339152, status: "active" },
+  { name: "ResiDesk",       sector: "PropTech",    stage: "Series Seed", invested: 1850000,   fv:  3250000, status: "active" },
+  { name: "PropUp",         sector: "PropTech",    stage: "Pre-Seed",    invested: 1450000,   fv:  2566373, status: "active" },
+  { name: "Soil Connect",   sector: "ConTech",     stage: "Series Seed", invested: 1100000,   fv:   955871, status: "active" },
+  { name: "Dextall",        sector: "ConTech",     stage: "Series Seed", invested:  890000,   fv:  3489958, status: "active" },
+  { name: "Tough Leaf",     sector: "ConTech",     stage: "Pre-Seed",    invested: 1374999,   fv:  1703692, status: "active" },
+  { name: "Roomie",         sector: "PropTech",    stage: "Pre-Seed",    invested:  674880,   fv:   820194, status: "active" },
+  { name: "Incentifind",    sector: "PropTech",    stage: "Series Seed", invested: 1000000,   fv:  1161918, status: "active" },
+  { name: "Leni",           sector: "PropTech",    stage: "Series Seed", invested: 1450000,   fv:  1645951, status: "active" },
+  { name: "Arthur",         sector: "RE Services", stage: "Series Seed", invested:  800000,   fv:   800000, status: "flat" },
+  { name: "Forty5Park",     sector: "PropTech",    stage: "Series Seed", invested:  500000,   fv:   500000, status: "flat" },
+];
+
+const SECTOR_COLORS = {
+  "PropTech":             "#7a93b3",
+  "ConTech":              "#5e9b96",
+  "Real Estate Services": "#c4a05e",
+  "RE Services":          "#c4a05e",
+};
+
+const CAPITAL_CALLS = [
+  { date: "2022-11-14", type: "First Close",           pct: "30%", amount: 4920000 },
+  { date: "2023-04-14", type: "First Capital Call",    pct: "20%", amount: 3280000 },
+  { date: "2024-03-31", type: "Second Close",          pct: "15%", amount: 3288750 },
+  { date: "2024-05-31", type: "Third Close",           pct: "—",   amount:  162500 },
+  { date: "2024-07-31", type: "Fourth Close",          pct: "—",   amount:   97500 },
+  { date: "2024-12-31", type: "Final Close",           pct: "10%", amount: 2276250 },
+  { date: "2025-04-30", type: "Capital Call",          pct: "5%",  amount:  935000 },
+];
+
+const FUND_SNAPSHOT = { ...FUND };                 // pre-live copy (asof 2025-12-31) for fallbacks
+const CAPITAL_CALLS_SNAPSHOT = CAPITAL_CALLS.map(c => ({ ...c }));
+
+/* Live-feed sanitizers — the Apps Script occasionally maps the wrong cells. */
+function sanitizeFund(f) {
+  const out = { ...f };
+  if (typeof out.fees === 'number') out.fees = Math.abs(out.fees);          // fees are a cost; sheet sign varies
+  const bad = typeof out.irr !== 'number' || out.irr < -1 || out.irr > 1.5   // >150% IRR is not a real fund IRR
+           || Math.abs(out.irr - (out.net_tvpi || 0)) < 1e-6 || Math.abs(out.irr - (out.tvpi || 0)) < 1e-6; // irr cell actually holds a TVPI
+  if (bad) { out.irr = FUND_SNAPSHOT.irr; out.irr_is_snapshot = true; }
+  return out;
+}
+function validCalls(calls, paidIn) {
+  // accept the live list only if it reconciles to paid-in capital within 2%
+  const sum = (calls || []).reduce((a, c) => a + (c.amount || 0), 0);
+  if (calls && calls.length >= 3 && paidIn && Math.abs(sum - paidIn) / paidIn < 0.02) return calls;
+  return CAPITAL_CALLS_SNAPSHOT.map(c => ({ ...c }));
+}
+// LP cap table — top 6 positions (41 LPs total). Pcts are commitment / fund commitment.
+const LPS = [
+  { name: "OTH Holdings LLC",            commitment: 3000000,  pct: 0.1604, paid_in: 2400000, highlight: true },
+  { name: "James C. Vaughan 2014 Trust", commitment: 2000000,  pct: 0.1070, paid_in: 1600000 },
+  { name: "DAHG Capital Partners LLC",   commitment: 1000000,  pct: 0.0535, paid_in:  800000 },
+  { name: "Daniel Tighe",                commitment:  500000,  pct: 0.0267, paid_in:  400000 },
+  { name: "Philip Kenney",               commitment:  500000,  pct: 0.0267, paid_in:  400000 },
+  { name: "Plat Investments LLC",        commitment:  500000,  pct: 0.0267, paid_in:  400000 },
+  { name: "Other 35 LPs (combined)",     commitment: 11200000, pct: 0.5990, paid_in: 8951680 },
+];
+
+/* ============================================================
+   STATE — points at either embedded fallback or live data from sheet
+============================================================ */
+let state = {
+  fund: { ...FUND },
+  holdings: [...HOLDINGS],
+  capital_calls: [...CAPITAL_CALLS],
+  lps: [...LPS],
+  source: 'embedded',           // 'live' | 'embedded' | 'error'
+  last_modified: null,
+};
+
+/* ============================================================
+   FETCH — pull live data from Apps Script web app
+============================================================ */
+async function fetchLiveData(silent) {
+  if (!API_URL) {
+    setStatus('cached', 'Static · embedded snapshot');
+    return;
+  }
+  if (!silent) setStatus('loading', 'Refreshing…');
+
+  try {
+    const url = API_URL + (API_URL.includes('?') ? '&' : '?') + 'key=' + encodeURIComponent(API_KEY);
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const json = await resp.json();
+    if (!json.ok) throw new Error(json.error || 'API returned not-ok');
+
+    // Map API payload onto state, preserving fields the API doesn't return
+    const d = json.data;
+    if (d.fund && Object.values(d.fund).some(v => typeof v === 'number')) {
+      state.fund = sanitizeFund({ ...FUND, ...stripNulls(d.fund) });
+    }
+    if (Array.isArray(d.holdings) && d.holdings.length > 0) {
+      // API returns {name, sector, stage, invested, fair_value} → normalize
+      state.holdings = d.holdings.map(h => ({
+        name:     h.name,
+        sector:   h.sector || guessSector(h.name),
+        stage:    h.stage  || '',
+        invested: h.invested || 0,
+        fv:       h.fair_value || h.fv || 0,
+        status:   h.fair_value === 0 ? 'write' :
+                  (h.invested > 0 && Math.abs(h.fair_value/h.invested - 1) < 0.01) ? 'flat' : 'active',
+      }));
+    }
+    if (Array.isArray(d.capital_calls) && d.capital_calls.length > 0) {
+      state.capital_calls = validCalls(d.capital_calls, state.fund.paid_in).map(c => ({
+        date:   c.date,
+        type:   c.type,
+        pct:    c.pct ? (typeof c.pct === 'number' ? (c.pct * 100).toFixed(0) + '%' : c.pct) : '—',
+        amount: c.amount,
+      }));
+    }
+        if (Array.isArray(d.lps) && d.lps.length > 0) {
+      const totalCommit = d.lps.reduce((a, l) => a + (l.commitment || 0), 0);
+      // Per-LP paid-in is derived from fund-level called % to keep it in sync
+      // with the fund header. The sheet's per-LP column lags actual capital
+      // calls; fund total (state.fund.paid_in / state.fund.committed) is the
+      // authoritative %.
+      const fundCalledPct = (state.fund && state.fund.committed)
+        ? (state.fund.paid_in || 0) / state.fund.committed
+        : 0.8;
+      state.lps = d.lps.map(l => ({
+        name:       l.name,
+        commitment: l.commitment,
+        pct:        l.pct || (totalCommit > 0 ? l.commitment / totalCommit : 0),
+        paid_in:    (l.commitment || 0) * fundCalledPct,
+        highlight:  /oth holdings/i.test(l.name),
+      }));
+    }
+
+    state.source = 'live';
+    state.last_modified = json.last_modified;
+    setStatus('live', 'Live · updated ' + relTime(json.last_modified));
+    renderAll();
+  } catch (err) {
+    console.error('Live fetch failed:', err);
+    state.source = 'error';
+    setStatus('error', 'Offline · using cached snapshot');
+  }
+}
+
+function stripNulls(obj) {
+  const out = {};
+  for (const k in obj) if (obj[k] !== null && obj[k] !== undefined) out[k] = obj[k];
+  return out;
+}
+
+function guessSector(name) {
+  const n = name.toLowerCase();
+  if (/dextall|soil connect|tough leaf/.test(n)) return 'ConTech';
+  if (/arthur/.test(n)) return 'RE Services';
+  return 'PropTech';
+}
+
+function setStatus(cls, text) {
+  const pill = document.getElementById('statusPill');
+  pill.className = 'status-pill ' + cls;
+  document.getElementById('statusText').textContent = text;
+}
+
+function relTime(iso) {
+  if (!iso) return 'just now';
+  const diff = (Date.now() - new Date(iso).getTime()) / 1000;
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return Math.round(diff/60) + ' min ago';
+  if (diff < 86400) return Math.round(diff/3600) + ' hr ago';
+  return Math.round(diff/86400) + ' days ago';
+}
+
+document.getElementById('statusPill').addEventListener('click', () => fetchLiveData(false));
+
+/* ============================================================
+   RENDER ORCHESTRATOR
+============================================================ */
+function renderAll() {
+  // Update header counts
+  document.getElementById('lpCount').textContent = state.lps.length;
+  // Existing renderers read from module-level FUND/HOLDINGS/etc.
+  // Swap their references to point at state for the live data path.
+  // Done by reassigning the const-bound values via a wrapper.
+  Object.assign(FUND, state.fund);
+  HOLDINGS.length = 0; HOLDINGS.push(...state.holdings);
+  CAPITAL_CALLS.length = 0; CAPITAL_CALLS.push(...state.capital_calls);
+  LPS.length = 0; LPS.push(...state.lps);
+
+  renderHero();
+  renderFlowBar();
+  renderHoldings();
+  renderDonut();
+  renderCalls();
+  renderLPs();
+  renderBridge();
+}
+
+/* ============================================================
+   HERO  ·  recompute hero stats from state.fund
+============================================================ */
+function renderHero() {
+  const f = state.fund;
+  const heroHTML = `
+    <div class="stat primary">
+      <div class="label">Net TVPI</div>
+      <div class="value huge serif gold">${(f.net_tvpi || 0).toFixed(2)}x</div>
+      <div class="sub">
+        Gross TVPI <span class="num">${(f.tvpi || 0).toFixed(2)}x</span>
+        <span class="delta">+${Math.round((f.net_tvpi - 1) * 100)}% net of fees</span>
+      </div>
+    </div>
+    <div class="stat">
+      <div class="label">Fair Value</div>
+      <div class="value serif num">${fmtUSD(f.fair_value, {compact:true})}</div>
+      <div class="sub">across <span class="num">${state.holdings.filter(h => h.fv > 0).length}</span> active positions</div>
+    </div>
+    <div class="stat">
+      <div class="label">MOIC</div>
+      <div class="value serif num">${(f.moic || 0).toFixed(2)}x</div>
+      <div class="sub">FV / Invested</div>
+    </div>
+    <div class="stat">
+      <div class="label">IRR</div>
+      <div class="value serif num">${(() => {
+        // Sanity check: real fund IRRs are between -100% and +500%.
+        // If the live value is junk (parser hit wrong cell), fall back to snapshot IRR.
+        const liveIRR = f.irr;
+        const useIRR = (typeof liveIRR === 'number' && liveIRR >= -1 && liveIRR <= 1.5)
+                        ? liveIRR
+                        : FUND_SNAPSHOT.irr;
+        return Math.round(useIRR * 100) + '%';
+      })()}</div>
+      <div class="sub">net, since first close${f.irr_is_snapshot ? ' · snapshot ' + FUND_SNAPSHOT.asof : ''}</div>
+    </div>
+  `;
+  document.querySelector('.hero').innerHTML = heroHTML;
+}
+/* ============================================================
+   HELPERS
+============================================================ */
+const fmtUSD = (n, opts = {}) => {
+  const { compact = false } = opts;
+  if (compact) {
+    if (Math.abs(n) >= 1e6) return "$" + (n/1e6).toFixed(2) + "M";
+    if (Math.abs(n) >= 1e3) return "$" + (n/1e3).toFixed(1) + "K";
+    return "$" + n.toFixed(0);
+  }
+  return "$" + n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+};
+const fmtPct = n => (n * 100).toFixed(1) + "%";
+
+/* ============================================================
+   RENDER  ·  Capital flow bar
+============================================================ */
+function renderFlowBar() {
+  const totalCommit = FUND.committed;
+  const segments = [
+    { kind: "invested", w: FUND.invested,                     color: "var(--gold)",     label: fmtUSD(FUND.invested, {compact:true}) + " invested" },
+    { kind: "fees",     w: FUND.fees,                         color: "var(--red)",      label: fmtUSD(FUND.fees, {compact:true}) + " fees" },
+    { kind: "uncalled", w: totalCommit - FUND.invested - FUND.fees, color: "var(--bg-card-hover)", label: fmtUSD(totalCommit - FUND.paid_in, {compact:true}) + " uncalled" },
+  ];
+  const bar = document.getElementById("flowBar");
+  bar.innerHTML = segments.map(s => `
+    <div class="flow-seg ${s.kind}" style="width: ${(s.w/totalCommit*100).toFixed(2)}%; background: ${s.color};">${s.w/totalCommit > 0.07 ? s.label : ""}</div>
+  `).join("");
+}
+
+/* ============================================================
+   RENDER  ·  Holdings table
+============================================================ */
+let sortKey = "fv", sortDir = "desc";
+function renderHoldings() {
+  const sorted = [...HOLDINGS].sort((a, b) => {
+    let av = a[sortKey], bv = b[sortKey];
+    if (sortKey === "moic") { av = a.invested ? a.fv/a.invested : 0; bv = b.invested ? b.fv/b.invested : 0; }
+    if (typeof av === "string") return sortDir === "asc" ? av.localeCompare(bv) : bv.localeCompare(av);
+    return sortDir === "asc" ? av - bv : bv - av;
+  });
+  const maxMoic = Math.max(...HOLDINGS.map(h => h.invested ? h.fv/h.invested : 0));
+  document.getElementById("holdingsBody").innerHTML = sorted.map(h => {
+    const moic = h.invested ? h.fv / h.invested : 0;
+    const moicPct = maxMoic > 0 ? (moic / maxMoic * 100) : 0;
+    const sectorClass = h.sector.toLowerCase().replace(/\s+/g, "-");
+    return `
+      <tr>
+        <td>
+          <span class="status-dot ${h.status}"></span>
+          <span style="font-weight: 500;">${h.name}</span>
+        </td>
+        <td><span class="tag ${sectorClass}">${h.sector}</span></td>
+        <td><span class="muted">${h.stage}</span></td>
+        <td class="right num">${fmtUSD(h.invested)}</td>
+        <td class="right num ${h.fv === 0 ? 'red' : (moic >= 1 ? 'gold' : 'red')}">${fmtUSD(h.fv)}</td>
+        <td class="right">
+          <div class="num ${moic >= 1 ? 'gold' : 'red'}">${moic.toFixed(2)}x</div>
+          <div class="moic-bar ${moic < 1 ? 'low' : ''} ${moic === 0 ? 'zero' : ''}"><div class="fill" style="width: ${moicPct}%"></div></div>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+document.querySelectorAll("#holdingsTable thead th[data-sort]").forEach(th => {
+  th.onclick = () => {
+    const k = th.dataset.sort;
+    if (sortKey === k) sortDir = sortDir === "asc" ? "desc" : "asc";
+    else { sortKey = k; sortDir = "desc"; }
+    renderHoldings();
+  };
+});
+
+/* ============================================================
+   RENDER  ·  Sector donut
+============================================================ */
+function renderDonut() {
+  // Canonicalize sector names so case variants merge (Proptech / PropTech → PropTech)
+  const canonicalSector = (s) => {
+    const t = (s || '').trim();
+    if (/^prop\s*tech$/i.test(t)) return 'PropTech';
+    if (/^con\s*tech$/i.test(t)) return 'ConTech';
+    if (/^real\s*estate\s*services$/i.test(t)) return 'Real Estate Services';
+    return t;
+  };
+  const sectorTotals = {};
+  HOLDINGS.forEach(h => {
+    const key = canonicalSector(h.sector);
+    if (!key) return;
+    sectorTotals[key] = (sectorTotals[key] || 0) + h.fv;
+  });
+  const total = Object.values(sectorTotals).reduce((a, b) => a + b, 0);
+  const cx = 120, cy = 120, r = 100, rInner = 64;
+  let start = 0;
+  const svg = document.getElementById("donutSvg");
+  svg.innerHTML = Object.entries(sectorTotals).map(([sector, val]) => {
+    const frac = val / total;
+    const end = start + frac * 2 * Math.PI;
+    const x1 = cx + r * Math.cos(start), y1 = cy + r * Math.sin(start);
+    const x2 = cx + r * Math.cos(end),   y2 = cy + r * Math.sin(end);
+    const x3 = cx + rInner * Math.cos(end),   y3 = cy + rInner * Math.sin(end);
+    const x4 = cx + rInner * Math.cos(start), y4 = cy + rInner * Math.sin(start);
+    const large = frac > 0.5 ? 1 : 0;
+    const path = `M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} L ${x3} ${y3} A ${rInner} ${rInner} 0 ${large} 0 ${x4} ${y4} Z`;
+    start = end;
+    return `<path d="${path}" fill="${SECTOR_COLORS[sector] || 'var(--blue)'}" />`;
+  }).join("");
+
+  document.getElementById("sectorLegend").innerHTML = Object.entries(sectorTotals)
+    .sort((a, b) => b[1] - a[1])
+    .map(([sector, val]) => `
+      <div class="legend-row">
+        <div class="legend-swatch" style="background: ${SECTOR_COLORS[sector] || 'var(--blue)'}"></div>
+        <div class="legend-name">${sector}</div>
+        <div class="legend-val num">${fmtUSD(val, {compact:true})}<span class="muted" style="font-size:12px; margin-left:8px;">${fmtPct(val/total)}</span></div>
+      </div>
+    `).join("");
+}
+
+/* ============================================================
+   RENDER  ·  Capital calls
+============================================================ */
+function renderCalls() {
+  let cum = 0;
+  const rows = CAPITAL_CALLS.map(c => {
+    cum += c.amount;
+    return `
+      <div class="call-row">
+        <div class="date">${c.date}</div>
+        <div class="type">${c.type} <span class="pct" style="margin-left:8px;">${c.pct}</span></div>
+        <div class="amount num">${fmtUSD(c.amount)}</div>
+        <div class="amount num muted">cum: ${fmtUSD(cum, {compact:true})}</div>
+      </div>
+    `;
+  }).join("");
+  const totalRow = `
+    <div class="call-row total">
+      <div></div>
+      <div>Total Paid-In Capital</div>
+      <div class="amount num gold">${fmtUSD(FUND.paid_in)}</div>
+      <div class="amount num muted">${(FUND.paid_in/FUND.committed*100).toFixed(1)}% of commit</div>
+    </div>
+  `;
+  document.getElementById("callsList").innerHTML = rows + totalRow;
+}
+
+/* ============================================================
+   RENDER  ·  LP cap table
+============================================================ */
+function renderLPs() {
+  const TOP_N = 10;
+  const sorted = [...LPS].sort((a, b) => (b.commitment || 0) - (a.commitment || 0));
+  const top = sorted.slice(0, TOP_N);
+  const rest = sorted.slice(TOP_N);
+  const restCommit = rest.reduce((s, l) => s + (l.commitment || 0), 0);
+  const restPct = rest.reduce((s, l) => s + (l.pct || 0), 0);
+  const restPaid = rest.reduce((s, l) => s + (l.paid_in || 0), 0);
+  let html = top.map(lp => `
+    <div class="lp-row ${lp.highlight ? 'highlight' : ''}">
+      <div>${lp.highlight ? '<span class="gold">★</span> ' : ''}${lp.name}</div>
+      <div class="num">${fmtUSD(lp.commitment)}</div>
+      <div class="num pct">${fmtPct(lp.pct)}</div>
+      <div class="num muted">${fmtUSD(lp.paid_in, {compact:true})} paid</div>
+    </div>
+  `).join("");
+  if (rest.length) {
+    html += `
+      <div class="lp-row" style="opacity:0.7">
+        <div>Other <span class="muted">(${rest.length} investors)</span></div>
+        <div class="num">${fmtUSD(restCommit)}</div>
+        <div class="num pct">${fmtPct(restPct)}</div>
+        <div class="num muted">${fmtUSD(restPaid, {compact:true})} paid</div>
+      </div>`;
+  }
+  document.getElementById("lpRows").innerHTML = html;
+}
+
+/* ============================================================
+   RENDER  ·  Bridge to Net Worth (the key feature)
+============================================================ */
+let bridgeMethod = "net";  // "net" or "gross"
+let bridgeInvestor = LPS[0];
+
+function renderBridge() {
+  // Repopulate investor dropdown each render so live LP changes propagate
+  const sel = document.getElementById("investorSelect");
+  const prevValue = sel.value;
+  sel.innerHTML = "";
+  const selectableLPs = LPS.filter(l => !l.name.startsWith("Other"));
+  selectableLPs.forEach((lp, i) => {
+    const opt = new Option(lp.name + "  (" + fmtUSD(lp.commitment, {compact:true}) + " · " + fmtPct(lp.pct) + ")", i);
+    sel.add(opt);
+  });
+  // Restore previous selection by name when possible
+  if (bridgeInvestor) {
+    const idx = selectableLPs.findIndex(l => l.name === bridgeInvestor.name);
+    if (idx !== -1) sel.value = idx;
+  }
+  bridgeInvestor = selectableLPs[sel.value || 0] || selectableLPs[0];
+  sel.onchange = () => { bridgeInvestor = selectableLPs[sel.value]; renderBridge(); };
+
+  const tvpi = bridgeMethod === "net" ? FUND.net_tvpi : FUND.tvpi;
+  const tvpiLabel = bridgeMethod === "net" ? "Net TVPI" : "Gross TVPI";
+  const mtm = bridgeInvestor.paid_in * tvpi;
+
+  // Keep pill labels in sync with live fund TVPI (they're hardcoded in HTML
+  // and otherwise show the stale fallback values).
+  const pillNet = document.getElementById('pillNet');
+  const pillGross = document.getElementById('pillGross');
+  if (pillNet) pillNet.textContent = `Net TVPI · ${FUND.net_tvpi.toFixed(2)}x`;
+  if (pillGross) pillGross.textContent = `Gross TVPI · ${FUND.tvpi.toFixed(2)}x`;
+
+  document.getElementById("mtmValue").textContent = fmtUSD(mtm);
+  document.getElementById("mtmDetail").innerHTML = `
+    Paid-in <span class="num">${fmtUSD(bridgeInvestor.paid_in, {compact:true})}</span>
+    × ${tvpiLabel} <span class="num">${tvpi.toFixed(2)}x</span>
+  `;
+
+  document.getElementById("methodNote").innerHTML = `
+    <strong style="color: var(--text);">${bridgeInvestor.name}</strong> committed
+    <span class="num">${fmtUSD(bridgeInvestor.commitment)}</span>
+    (<span class="num">${fmtPct(bridgeInvestor.pct)}</span> of fund);
+    paid-in to date <span class="num">${fmtUSD(bridgeInvestor.paid_in)}</span>.
+    Marked at fund's ${tvpiLabel} of <span class="num">${tvpi.toFixed(2)}x</span>
+    ${bridgeMethod === "net" ? "(after " + fmtUSD(Math.abs(FUND.fees || 0), {compact:true}) + " cumulative mgmt fees)" : "(before fees)"}
+    yields MTM of <span class="num gold">${fmtUSD(mtm)}</span>
+    as of ${MARKS_ASOF} (fair values per the ${MARKS_ASOF} report).
+  `;
+}
+
+document.querySelectorAll(".method-pill").forEach(p => {
+  p.onclick = () => {
+    document.querySelectorAll(".method-pill").forEach(x => x.classList.remove("active"));
+    p.classList.add("active");
+    bridgeMethod = p.dataset.method;
+    renderBridge();
+  };
+});
+
+
+/* ============================================================
+   EXPORT  ·  Investor statement (print → Save as PDF)
+   Fund-level data + the selected investor's position only.
+   The "Largest LP Positions" strip and other LP names are excluded.
+============================================================ */
+function buildStatementHTML(inv, method) {
+  const f = state.fund;
+  const tvpiNet = f.net_tvpi || 0, tvpiGross = f.tvpi || 0;
+  const tvpi = method === "gross" ? tvpiGross : tvpiNet;
+  const tvpiLabel = method === "gross" ? "Gross TVPI" : "Net TVPI";
+  const mtm = (inv.paid_in || 0) * tvpi;
+  const altTvpi = method === "gross" ? tvpiNet : tvpiGross;
+  const altLabel = method === "gross" ? "Net TVPI" : "Gross TVPI";
+  const calledPct = f.committed ? (f.paid_in || 0) / f.committed : 0;
+  const irr = (typeof f.irr === 'number' && f.irr >= -1 && f.irr <= 1.5) ? f.irr : FUND_SNAPSHOT.irr;
+  const irrNote = f.irr_is_snapshot ? `per ${FUND_SNAPSHOT.asof} snapshot` : "since first close";
+  const fees = Math.abs(f.fees || 0);
+  const esc = t => String(t ?? "").replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const money = n => "$" + Math.round(n || 0).toLocaleString("en-US");
+  const x = n => (n || 0).toFixed(2) + "x";
+  const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+
+  const canonSector = t => { const k = (t || "Other").trim(); const l = k.toLowerCase(); return l === "proptech" ? "PropTech" : l === "contech" ? "ConTech" : k; };
+  const holdings = [...state.holdings].sort((a, b) => (b.fv || 0) - (a.fv || 0));
+  const hInv = holdings.reduce((a, h) => a + (h.invested || 0), 0);
+  const hFv  = holdings.reduce((a, h) => a + (h.fv || 0), 0);
+  const holdingRows = holdings.map(h => `
+      <tr class="${h.fv === 0 ? 'writeoff' : ''}">
+        <td>${esc(h.name)}</td><td>${esc(canonSector(h.sector))}</td><td>${esc(h.stage)}</td>
+        <td class="n">${money(h.invested)}</td><td class="n">${money(h.fv)}</td>
+        <td class="n">${h.invested ? x(h.fv / h.invested) : "—"}</td>
+      </tr>`).join("");
+
+  const sectors = {};
+  holdings.forEach(h => { const k = canonSector(h.sector); sectors[k] = (sectors[k] || 0) + (h.fv || 0); });
+  const sectorRows = Object.entries(sectors).sort((a, b) => b[1] - a[1]).map(([k, v]) => `
+      <tr><td>${esc(k)}</td><td class="n">${money(v)}</td><td class="n">${hFv ? (v / hFv * 100).toFixed(1) : "0.0"}%</td></tr>`).join("");
+
+  let cum = 0;
+  const calls = validCalls(state.capital_calls, f.paid_in);
+  let callRows = calls.map(c => { cum += (c.amount || 0); return `
+      <tr><td>${esc(c.date)}</td><td>${esc(c.type)}</td><td class="n">${esc(c.pct || "—")}</td>
+      <td class="n">${money(c.amount)}</td><td class="n">${money(cum)}</td></tr>`; }).join("");
+  const unitemized = (f.paid_in || 0) - cum;
+  if (Math.abs(unitemized) > (f.paid_in || 1) * 0.005) { cum += unitemized; callRows += `
+      <tr><td>—</td><td>Subsequent capital call(s), not yet itemized</td><td class="n">${f.committed ? (unitemized / f.committed * 100).toFixed(0) : "—"}%</td>
+      <td class="n">${money(unitemized)}</td><td class="n">${money(cum)}</td></tr>`; }
+
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<title>Stellifi Fund I LP — Investor Statement — ${esc(inv.name)}</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  @page { size: letter; margin: 0.6in 0.65in 0.7in; }
+  :root { --ink:#141821; --ink2:#4b5361; --ink3:#7d8594; --rule:#d9dde5; --rule2:#eef0f4; --gold:#8a6a2e; --gold-soft:#b08d4a; --wash:#f6f3ec; --red:#a0402c; }
+  * { box-sizing: border-box; }
+  html, body { background:#fff; color:var(--ink); margin:0; }
+  body { font: 10.5pt/1.45 "IBM Plex Sans", -apple-system, "Segoe UI", sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .serif { font-family: "Newsreader", Georgia, serif; }
+  .num, .n { font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace; font-variant-numeric: tabular-nums; }
+  .page { max-width: 7.2in; margin: 0 auto; padding: 24px 0 40px; }
+  .mast { display:flex; justify-content:space-between; align-items:flex-end; border-bottom: 2px solid var(--ink); padding-bottom: 12px; }
+  .eyebrow { font-size: 8.5pt; letter-spacing: .16em; text-transform: uppercase; color: var(--gold); font-weight: 600; }
+  h1 { font: 500 26pt/1.1 "Newsreader", Georgia, serif; margin: 4px 0 0; letter-spacing: -.01em; }
+  h1 em { font-style: italic; color: var(--gold-soft); }
+  .mast .meta { text-align: right; font-size: 9pt; color: var(--ink2); line-height: 1.6; }
+  .prepared { margin: 18px 0 0; padding: 14px 18px; background: var(--wash); border-left: 3px solid var(--gold); }
+  .prepared .lbl { font-size: 8.5pt; letter-spacing: .14em; text-transform: uppercase; color: var(--ink3); }
+  .prepared .who { font: 500 17pt/1.2 "Newsreader", Georgia, serif; margin-top: 2px; }
+  h2 { font: 500 14.5pt/1.2 "Newsreader", Georgia, serif; margin: 26px 0 4px; letter-spacing: -.005em; }
+  .lede { font-size: 9pt; color: var(--ink2); margin: 0 0 10px; max-width: 62ch; }
+  .band { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--ink); border-bottom: 1px solid var(--rule); }
+  .band.five { grid-template-columns: repeat(5, 1fr); }
+  .band .cell { padding: 10px 12px 9px; border-right: 1px solid var(--rule2); }
+  .band .cell:last-child { border-right: 0; }
+  .band .k { font-size: 7.8pt; letter-spacing: .12em; text-transform: uppercase; color: var(--ink3); font-weight: 600; }
+  .band .v { font: 500 16pt/1.15 "Newsreader", Georgia, serif; margin-top: 3px; font-variant-numeric: tabular-nums; }
+  .band .v.big { font-size: 22pt; color: var(--gold); }
+  .band .s { font-size: 8.5pt; color: var(--ink3); margin-top: 2px; }
+  table { width: 100%; border-collapse: collapse; font-size: 9.5pt; margin-top: 6px; }
+  th, td { padding: 6px 8px; border-bottom: 1px solid var(--rule2); text-align: left; vertical-align: top; }
+  th { font-size: 7.8pt; letter-spacing: .1em; text-transform: uppercase; color: var(--ink3); font-weight: 600; border-bottom: 1px solid var(--rule); }
+  th.n, td.n { text-align: right; white-space: nowrap; }
+  tr.total td { border-top: 1px solid var(--ink); border-bottom: 0; font-weight: 600; background: var(--wash); }
+  tr.writeoff td { color: var(--ink3); }
+  .two { display: grid; grid-template-columns: 1.6fr 1fr; gap: 22px; align-items: start; }
+  .note { margin-top: 14px; padding: 11px 14px; border-left: 2px solid var(--gold-soft); background: #fbfaf7; font-size: 8.8pt; color: var(--ink2); line-height: 1.6; }
+  .note b { color: var(--ink); font-weight: 600; }
+  .formula { font-family: "IBM Plex Mono", monospace; font-size: 9pt; color: var(--ink2); margin-top: 6px; }
+  .foot { margin-top: 28px; padding-top: 10px; border-top: 1px solid var(--rule); font-size: 8pt; color: var(--ink3); line-height: 1.6; }
+  .brk { break-before: page; }
+  .avoid { break-inside: avoid; }
+  @media screen { body { background: #e9e9e9; } .page { background: #fff; box-shadow: 0 2px 18px rgba(0,0,0,.15); padding: 40px 48px 56px; margin: 24px auto; max-width: 8.1in; } .toolbar { position: sticky; top: 0; background: #1b1f27; color: #fff; padding: 10px 16px; font-size: 12px; display: flex; gap: 14px; align-items: center; } .toolbar button { font: inherit; padding: 6px 14px; border-radius: 4px; border: 0; background: #c4a05e; color: #1b1f27; cursor: pointer; font-weight: 600; } }
+  @media print { .toolbar { display: none; } }
+</style></head><body>
+<div class="toolbar">Investor statement ready — use <b>Save as PDF</b> as the destination. <button onclick="window.print()">Print / Save as PDF</button></div>
+<div class="page">
+  <div class="mast">
+    <div><div class="eyebrow">Stellifi Capital · Investor Statement</div><h1>Stellifi Fund I <em>LP</em></h1></div>
+    <div class="meta">Fair values as of <span class="num">${MARKS_ASOF}</span><br>Vintage <span class="num">${esc(f.vintage)}</span> · ${state.lps.length} limited partners<br>Generated ${esc(today)}</div>
+  </div>
+
+  <div class="prepared avoid">
+    <div class="lbl">Prepared for</div>
+    <div class="who">${esc(inv.name)}</div>
+  </div>
+
+  <h2>Your position</h2>
+  <p class="lede">Commitment and paid-in capital per the fund's investor ledger; mark-to-market applies the fund's ${tvpiLabel} to your paid-in capital.</p>
+  <div class="band five avoid">
+    <div class="cell"><div class="k">Commitment</div><div class="v num">${money(inv.commitment)}</div><div class="s">${((inv.pct || 0) * 100).toFixed(2)}% of fund</div></div>
+    <div class="cell"><div class="k">Paid-in to date</div><div class="v num">${money(inv.paid_in)}</div><div class="s">${(calledPct * 100).toFixed(0)}% called</div></div>
+    <div class="cell"><div class="k">Unfunded</div><div class="v num">${money((inv.commitment || 0) - (inv.paid_in || 0))}</div><div class="s">remaining commitment</div></div>
+    <div class="cell"><div class="k">${tvpiLabel}</div><div class="v num">${x(tvpi)}</div><div class="s">${altLabel} ${x(altTvpi)}</div></div>
+    <div class="cell"><div class="k">Mark-to-market</div><div class="v num big">${money(mtm)}</div><div class="s">at ${tvpiLabel}</div></div>
+  </div>
+  <div class="formula">MTM = paid-in ${money(inv.paid_in)} × ${tvpiLabel} ${x(tvpi)} = ${money(mtm)} &nbsp;·&nbsp; at ${altLabel}: ${money((inv.paid_in || 0) * altTvpi)}</div>
+
+  <h2>Fund performance</h2>
+  <div class="band avoid">
+    <div class="cell"><div class="k">Net TVPI</div><div class="v num">${x(tvpiNet)}</div><div class="s">after ${money(fees)} mgmt fees</div></div>
+    <div class="cell"><div class="k">Gross TVPI</div><div class="v num">${x(tvpiGross)}</div><div class="s">before fees</div></div>
+    <div class="cell"><div class="k">MOIC</div><div class="v num">${x(f.moic)}</div><div class="s">fair value / invested</div></div>
+    <div class="cell"><div class="k">Net IRR</div><div class="v num">${Math.round((irr || 0) * 100)}%</div><div class="s">${irrNote}</div></div>
+  </div>
+  <table class="avoid">
+    <thead><tr><th>Capital activity</th><th class="n">Amount</th><th class="n">% of commitment</th></tr></thead>
+    <tbody>
+      <tr><td>Total commitments</td><td class="n">${money(f.committed)}</td><td class="n">100.0%</td></tr>
+      <tr><td>Paid-in capital</td><td class="n">${money(f.paid_in)}</td><td class="n">${(calledPct * 100).toFixed(1)}%</td></tr>
+      <tr><td>Invested in portfolio companies</td><td class="n">${money(f.invested)}</td><td class="n">${f.committed ? ((f.invested || 0) / f.committed * 100).toFixed(1) : "—"}%</td></tr>
+      <tr><td>Cumulative management fees</td><td class="n">(${money(fees)})</td><td class="n">${f.committed ? (fees / f.committed * 100).toFixed(1) : "—"}%</td></tr>
+      <tr><td>Portfolio fair value</td><td class="n">${money(f.fair_value)}</td><td class="n">${f.committed ? ((f.fair_value || 0) / f.committed * 100).toFixed(1) : "—"}%</td></tr>
+      <tr class="total"><td>Net value (fair value less fees)</td><td class="n">${money(f.net_value)}</td><td class="n">${f.committed ? ((f.net_value || 0) / f.committed * 100).toFixed(1) : "—"}%</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Capital calls &amp; closes</h2>
+  <table class="avoid">
+    <thead><tr><th>Date</th><th>Event</th><th class="n">Call %</th><th class="n">Amount</th><th class="n">Cumulative</th></tr></thead>
+    <tbody>${callRows}
+      <tr class="total"><td></td><td>Total paid-in capital</td><td class="n">${(calledPct * 100).toFixed(1)}%</td><td class="n">${money(f.paid_in)}</td><td></td></tr>
+    </tbody>
+  </table>
+
+  <h2 class="brk">Portfolio holdings</h2>
+  <p class="lede">${holdings.filter(h => (h.fv || 0) > 0).length} active positions, sorted by fair value. Written-off positions are shown at zero.</p>
+  <table>
+    <thead><tr><th>Company</th><th>Sector</th><th>Stage</th><th class="n">Invested</th><th class="n">Fair value</th><th class="n">MOIC</th></tr></thead>
+    <tbody>${holdingRows}
+      <tr class="total"><td colspan="3">Portfolio total</td><td class="n">${money(hInv)}</td><td class="n">${money(hFv)}</td><td class="n">${hInv ? x(hFv / hInv) : "—"}</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Sector allocation</h2>
+  <table class="avoid" style="max-width: 4.6in;">
+    <thead><tr><th>Sector</th><th class="n">Fair value</th><th class="n">Share</th></tr></thead>
+    <tbody>${sectorRows}</tbody>
+  </table>
+
+  <div class="note avoid">
+    <b>Methodology.</b> Fair values are updated per the ${MARKS_ASOF} fund report; MOIC is fair value over invested capital. Gross TVPI is portfolio fair value over paid-in capital; Net TVPI deducts cumulative management fees. Your mark-to-market multiplies your paid-in capital by the fund ${tvpiLabel} and is an estimate of value, not a distribution, a redemption price, or a guarantee of future results. Paid-in capital is stated at the fund-level called percentage and may differ from your capital account statement by timing of individual calls.
+  </div>
+  <div class="foot">Confidential — prepared for ${esc(inv.name)} only. Contains fund-level information and this investor's position; other limited partners' positions are not disclosed. Stellifi Venture Capital LLC, general partner of Stellifi Fund I LP. Not an offer to sell or a solicitation of an offer to buy any security.</div>
+</div>
+</body></html>`;
+}
+
+function exportInvestorPDF() {
+  if (!bridgeInvestor) return;
+  const w = window.open("", "_blank");
+  if (!w) { alert("Pop-up blocked — allow pop-ups for this page and try again."); return; }
+  w.document.open(); w.document.write(buildStatementHTML(bridgeInvestor, bridgeMethod)); w.document.close();
+  const go = () => { try { w.focus(); w.print(); } catch (e) {} };
+  if (w.document.fonts && w.document.fonts.ready) w.document.fonts.ready.then(() => setTimeout(go, 300)); else setTimeout(go, 900);
+}
+document.getElementById("exportPdf").addEventListener("click", exportInvestorPDF);
+
+/* ============================================================
+   INIT
+============================================================ */
+renderAll();                          // initial render from embedded data
+fetchLiveData(true);                  // try to upgrade to live in the background
+setInterval(() => fetchLiveData(true), REFRESH_MS);   // auto-refresh every 5 min
+</script>
+</body>
+</html>
